@@ -57,13 +57,15 @@ if [ "$help" = "1" ]; then
 
     Examples:
 
-    redeploy -t                 Tears down the CloudFormation stack with the default name and profile
-    redeploy -d -s test         Redeploys a 
+    redeploy -t                 Tears down the CloudFormation stack with the default name and profile, exits program
+    redeploy -d -s test         Deletes and redeploys a CloudFormation stack and renames the stack to 'test'
+    redeploy -p sandbox -po parameter.json 
+                                (Re)deploys a CloudFormation stack using the 'sandox' AWS profile and uses the CloudFormation parameters as defined in the 'parameters.json' file
     " 
     exit
 fi;
 
-[ ! -f ./$templatefile ] && echo "$templatefile doesn't exist" && exit   
+[ ! -f ./$templatefile ] && echo "The expected template file $templatefile could not be found. Please specify your CloudFormation template file with -f or --template-file." && exit   
 
 
 if [ "$deletestack" = "1" ]; then
@@ -83,11 +85,6 @@ aws cloudformation package  --template-file "$templatefile" \
 echo "Successfully packaged artifacts and wrote output template to file packaged-$templatefile."
 if [ -z "$parameters" ];
 then  
-    # echo "aws cloudformation deploy --template packaged-$templatefile \
-    # --capabilities CAPABILITY_NAMED_IAM \
-    # --stack-name $stackname \
-    # --profile $awsprofile
-    # --parameter-overrides file://./$parameterfile"
     aws cloudformation deploy --template "packaged-$templatefile" \
     --capabilities CAPABILITY_NAMED_IAM \
     --stack-name "$stackname" \
@@ -107,3 +104,4 @@ else
     --query 'StackEvents[].[Timestamp, ResourceStatus, LogicalResourceId, ResourceStatusReason]' \
     --output table
 fi;
+
